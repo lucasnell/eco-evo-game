@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dispersal Lab: Aphids &amp; Parasitoids</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23b3541e'/%3E%3Ccircle cx='11' cy='13' r='4' fill='%232f7a9e'/%3E%3Ccircle cx='21' cy='19' r='4' fill='%23d17a22'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f7f6f2;
+    --panel: #ffffff;
+    --ink: #1c1b19;
+    --muted: #63615c;
+    --line: #ddd9d0;
+    --accent: #b3541e;
+    --susceptible: #2f7a9e;
+    --resistant: #d17a22;
+    --wasp: #5a8f4f;
+    --danger: #a13d3d;
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #171614;
+      --panel: #211f1c;
+      --ink: #ece9e3;
+      --muted: #a8a49b;
+      --line: #38352f;
+      --accent: #e0954a;
+      --susceptible: #6bb3d6;
+      --resistant: #eba158;
+      --wasp: #8fc784;
+      --danger: #e08080;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 16px;
+    padding-block: 20px;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    max-width: 640px;
+    margin-inline: auto;
+  }
+  h1 { font-size: 1.3rem; margin: 0 0 4px; }
+  .lede { color: var(--muted); font-size: 0.92rem; margin: 0 0 18px; }
+  .lede strong { color: var(--ink); }
+  section { margin-bottom: 20px; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  h2 { font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); margin: 0 0 12px; }
+  .control { margin-bottom: 14px; }
+  .control:last-child { margin-bottom: 0; }
+  .control label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.92rem;
+    margin-bottom: 4px;
+  }
+  .control label .val { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600; }
+  .control input[type=range] { width: 100%; accent-color: var(--accent); height: 28px; }
+  .control p.help { margin: 2px 0 0; font-size: 0.82rem; color: var(--muted); }
+  .buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  button {
+    font: inherit;
+    font-size: 0.95rem;
+    padding: 12px 18px;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    cursor: pointer;
+    min-height: 44px;
+  }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 14px 0 10px;
+  }
+  .status-bar strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .patches { display: flex; flex-direction: column; gap: 14px; }
+  .patch { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; background: var(--panel); }
+  .patch h3 { margin: 0 0 8px; font-size: 0.9rem; display: flex; justify-content: space-between; }
+  .patch h3 .rprop { font-weight: 400; color: var(--muted); }
+  canvas { width: 100%; height: 96px; display: block; }
+  .legend { display: flex; gap: 14px; font-size: 0.78rem; color: var(--muted); margin-top: 4px; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .narrative {
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    background: var(--panel);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-size: 0.92rem;
+    min-height: 1.4em;
+  }
+  .narrative.warn { border-left-color: var(--danger); }
+  footer { font-size: 0.78rem; color: var(--muted); margin-top: 26px; line-height: 1.6; }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+
+<h1>Dispersal Lab: Aphids &amp; Parasitoids</h1>
+<p class="lede">
+  You're running a computational experiment on two cages of pea aphids
+  (<em>Acyrthosiphon pisum</em>) and their parasitoid wasp (<em>Aphidius ervi</em>),
+  based on <a href="https://doi.org/10.1126/science.adg4602" target="_blank" rel="noopener">Nell et al. 2024, <em>Science</em></a>.
+  Each cage starts with two aphid clones: <strong>susceptible</strong> (grows faster)
+  and <strong>resistant</strong> (survives parasitism more often, but grows a little
+  slower). You don't choose which clone wins &mdash; you only control how much aphids
+  and wasps move between the two cages. Watch what that choice does.
+</p>
+
+<section class="panel">
+  <h2>Setup</h2>
+  <div class="control">
+    <label for="initR">Starting resistant proportion <span class="val" id="initRVal">50%</span></label>
+    <input type="range" id="initR" min="0" max="100" step="1" value="50">
+    <p class="help">Split of the initial aphid population in each cage, before anything runs.</p>
+  </div>
+  <div class="buttons">
+    <button class="primary" id="startBtn">Start simulation</button>
+    <button id="resetBtn" disabled>New simulation</button>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Controls (δₐ, γ)</h2>
+  <div class="control">
+    <label for="deltaA">Aphid dispersal, δₐ <span class="val" id="deltaAVal">0.10</span></label>
+    <input type="range" id="deltaA" min="0" max="0.5" step="0.01" value="0.10">
+    <p class="help">Fraction of winged aphids that move between cages each day.</p>
+  </div>
+  <div class="control">
+    <label for="gamma">Parasitoid dispersal heterogeneity, γ <span class="val" id="gammaVal">1.00</span></label>
+    <input type="range" id="gamma" min="0" max="2" step="0.05" value="1.00">
+    <p class="help">How unevenly wasps spread themselves across cages, and how tightly they track local aphid density.</p>
+  </div>
+  <p class="help" style="margin-top:8px;">
+    You can adjust these between turns &mdash; they're the only levers you ever get.
+    Clone frequencies change only from what actually happens to the aphids.
+  </p>
+</section>
+
+<div class="status-bar">
+  <span>Day <strong id="dayCounter">0</strong></span>
+  <span>Harvest cycle <strong id="turnCounter">0</strong></span>
+</div>
+
+<div class="buttons" style="margin-bottom:16px;">
+  <button class="primary" id="advanceBtn" disabled>Advance one harvest cycle (28 days)</button>
+</div>
+
+<div class="narrative panel" id="narrative">Set your starting conditions above, then press Start.</div>
+
+<section>
+  <div class="patches" id="patches"></div>
+</section>
+
+<footer>
+  Reduced simulation, not the full field model &mdash; see
+  <a href="https://github.com/lucasnell/gameofclones" target="_blank" rel="noopener">gameofclones</a>
+  for the reference implementation this is transcribed from.
+  Model parameters and mechanics: docs/MODEL.md in this project's repo.
+</footer>
+
+<script type="module">
+// ---------------------------------------------------------------------------
+// Model (inlined copy of js/model.js — see that file's header comment and
+// ../docs/MODEL.md for full citations. Keep the two in sync by hand; js/model.js
+// is the dev-time source of truth with its own test suite).
+// ---------------------------------------------------------------------------
+
+const TRANSCRIBED = Object.freeze({
+  attackA: 2.32,
+  attackK: 0.35,
+  lambdaS: 1.26,
+  lambdaR: 1.21,
+  resistBenefit: 0.73,
+  alateFraction: 0.20,
+  waspDispM0: 0.3,
+  waspDispM1Base: 0.34906,
+  attractSdBase: 0.5844,
+  adultWaspSurvival: 0.69,
+  mummyDelayDays: 10,
+  harvestIntervalDays: 28,
+  harvestAphidSurvivalMin: 0.01,
+  harvestAphidSurvivalMax: 0.04,
+});
+
+const CALIBRATED_DEFAULTS = Object.freeze({
+  patchCarryingCapacity: 500,
+  attackH: 2.0,
+});
+
+function makeRng(seed) {
+  let a = seed >>> 0;
+  return function rng() {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function gaussian(rng) {
+  const u1 = Math.max(rng(), Number.EPSILON);
+  const u2 = rng();
+  return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+}
+function uniform(rng, min, max) { return min + rng() * (max - min); }
+
+function createSimulation(opts) {
+  const {
+    patches, deltaA, gamma, initialS, initialR, initialW, seed,
+    patchCarryingCapacity = CALIBRATED_DEFAULTS.patchCarryingCapacity,
+    attackH = CALIBRATED_DEFAULTS.attackH,
+  } = opts;
+
+  const rng = makeRng(seed);
+  const P = patches;
+  const K = patchCarryingCapacity;
+  const S = initialS.slice();
+  const R = initialR.slice();
+  const W = initialW.slice();
+  const mummies = Array.from({ length: P }, () => new Array(TRANSCRIBED.mummyDelayDays).fill(0));
+
+  const sdAttract = TRANSCRIBED.attractSdBase * gamma;
+  let attract = Array.from({ length: P }, () => Math.exp(-gaussian(rng) * sdAttract));
+  const attractSum = attract.reduce((a, b) => a + b, 0);
+  attract = attract.map((v) => v / attractSum);
+
+  const harvestOffset = Array.from({ length: P }, (_, i) => Math.floor((i * TRANSCRIBED.harvestIntervalDays) / P));
+  let day = 0;
+  let lastDeltaA = deltaA;
+  let lastGamma = gamma;
+
+  function dispersePooled(arr, rate) {
+    let pool = 0;
+    for (let i = 0; i < P; i++) {
+      const leaving = arr[i] * rate;
+      arr[i] -= leaving;
+      pool += leaving;
+    }
+    const share = pool / P;
+    for (let i = 0; i < P; i++) arr[i] += share;
+  }
+
+  function step(liveDeltaA, liveGamma) {
+    lastDeltaA = liveDeltaA ?? lastDeltaA;
+    lastGamma = liveGamma ?? lastGamma;
+    const N = S.map((s, i) => s + R[i]);
+
+    const attackProb = N.map((n, i) => {
+      const aBar = (TRANSCRIBED.attackA * W[i]) / (attackH * n + 1);
+      return 1 - Math.pow(1 + aBar / TRANSCRIBED.attackK, -TRANSCRIBED.attackK);
+    });
+    const attackedS = S.map((s, i) => s * attackProb[i]);
+    const attackedR = R.map((r, i) => r * attackProb[i]);
+    const survivedAttackedR = attackedR.map((r) => r * TRANSCRIBED.resistBenefit);
+    const newMummies = attackedS.map((s, i) => s + attackedR[i] * (1 - TRANSCRIBED.resistBenefit));
+
+    for (let i = 0; i < P; i++) {
+      const unattackedS = S[i] - attackedS[i];
+      const unattackedR = R[i] - attackedR[i];
+      const densityTerm = 1 + (TRANSCRIBED.lambdaS - 1) * (N[i] / K);
+      S[i] = (unattackedS * TRANSCRIBED.lambdaS) / densityTerm;
+      R[i] = (unattackedR * TRANSCRIBED.lambdaR) / densityTerm + survivedAttackedR[i];
+    }
+
+    const eclosed = new Array(P).fill(0);
+    for (let i = 0; i < P; i++) {
+      eclosed[i] = mummies[i][0];
+      for (let d = 0; d < TRANSCRIBED.mummyDelayDays - 1; d++) mummies[i][d] = mummies[i][d + 1];
+      mummies[i][TRANSCRIBED.mummyDelayDays - 1] = newMummies[i];
+    }
+    for (let i = 0; i < P; i++) W[i] = W[i] * TRANSCRIBED.adultWaspSurvival + eclosed[i];
+
+    dispersePooled(S, lastDeltaA * TRANSCRIBED.alateFraction);
+    dispersePooled(R, lastDeltaA * TRANSCRIBED.alateFraction);
+
+    const m1 = TRANSCRIBED.waspDispM1Base * lastGamma;
+    const Npost = S.map((s, i) => s + R[i]);
+    let waspPool = 0;
+    const emigration = new Array(P).fill(0);
+    for (let i = 0; i < P; i++) {
+      const z = Math.max(Npost[i], 1);
+      const rate = TRANSCRIBED.waspDispM0 * Math.exp(-m1 * Math.log(z));
+      emigration[i] = Math.min(W[i], W[i] * Math.min(rate, 1));
+      waspPool += emigration[i];
+    }
+    for (let i = 0; i < P; i++) W[i] = W[i] - emigration[i] + waspPool * attract[i];
+
+    for (let i = 0; i < P; i++) {
+      if ((((day - harvestOffset[i]) % TRANSCRIBED.harvestIntervalDays) + TRANSCRIBED.harvestIntervalDays) % TRANSCRIBED.harvestIntervalDays === 0) {
+        S[i] *= uniform(rng, TRANSCRIBED.harvestAphidSurvivalMin, TRANSCRIBED.harvestAphidSurvivalMax);
+        R[i] *= uniform(rng, TRANSCRIBED.harvestAphidSurvivalMin, TRANSCRIBED.harvestAphidSurvivalMax);
+        mummies[i].fill(0);
+      }
+    }
+    day += 1;
+  }
+
+  function state() {
+    return {
+      day,
+      S: S.slice(), R: R.slice(), W: W.slice(),
+      N: S.map((s, i) => s + R[i]),
+      resistantProportion: S.map((s, i) => { const n = s + R[i]; return n > 0 ? R[i] / n : NaN; }),
+    };
+  }
+
+  return { step, state, patches: P };
+}
+
+// ---------------------------------------------------------------------------
+// Game/UI wiring
+// ---------------------------------------------------------------------------
+
+const PATCHES = 2;
+const HISTORY_LIMIT = 40; // turns kept for the chart
+
+const el = {
+  initR: document.getElementById("initR"),
+  initRVal: document.getElementById("initRVal"),
+  deltaA: document.getElementById("deltaA"),
+  deltaAVal: document.getElementById("deltaAVal"),
+  gamma: document.getElementById("gamma"),
+  gammaVal: document.getElementById("gammaVal"),
+  startBtn: document.getElementById("startBtn"),
+  resetBtn: document.getElementById("resetBtn"),
+  advanceBtn: document.getElementById("advanceBtn"),
+  dayCounter: document.getElementById("dayCounter"),
+  turnCounter: document.getElementById("turnCounter"),
+  narrative: document.getElementById("narrative"),
+  patches: document.getElementById("patches"),
+};
+
+let sim = null;
+let turn = 0;
+let history = []; // [{day, S:[], R:[], W:[]}, ...]
+let patchEls = [];
+
+function fmtPct(v) { return `${Math.round(v * 100)}%`; }
+
+el.initR.addEventListener("input", () => { el.initRVal.textContent = `${el.initR.value}%`; });
+el.deltaA.addEventListener("input", () => { el.deltaAVal.textContent = Number(el.deltaA.value).toFixed(2); });
+el.gamma.addEventListener("input", () => { el.gammaVal.textContent = Number(el.gamma.value).toFixed(2); });
+
+function buildPatchCards() {
+  el.patches.innerHTML = "";
+  patchEls = [];
+  for (let i = 0; i < PATCHES; i++) {
+    const card = document.createElement("div");
+    card.className = "patch";
+    card.innerHTML = `
+      <h3><span>Cage ${i + 1}</span><span class="rprop" data-rprop>&mdash;</span></h3>
+      <canvas data-canvas width="600" height="192"></canvas>
+      <div class="legend">
+        <span><i class="swatch" style="background:var(--susceptible)"></i>susceptible</span>
+        <span><i class="swatch" style="background:var(--resistant)"></i>resistant</span>
+        <span><i class="swatch" style="background:var(--wasp)"></i>wasps (own scale)</span>
+      </div>
+    `;
+    el.patches.appendChild(card);
+    patchEls.push({
+      root: card,
+      rprop: card.querySelector("[data-rprop]"),
+      canvas: card.querySelector("[data-canvas]"),
+    });
+  }
+}
+
+function drawPatchChart(canvas, series) {
+  const ctx = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = canvas.clientWidth || 300;
+  const cssH = 96;
+  canvas.width = cssW * dpr;
+  canvas.height = cssH * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cssW, cssH);
+
+  if (series.length < 2) return;
+
+  const pad = 4;
+  const w = cssW - pad * 2;
+  const h = cssH - pad * 2;
+
+  function plot(values, color) {
+    const max = Math.max(1, ...values);
+    ctx.beginPath();
+    values.forEach((v, i) => {
+      const x = pad + (i / (values.length - 1)) * w;
+      const y = pad + h - (v / max) * h;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  const style = getComputedStyle(document.documentElement);
+  plot(series.map((s) => s.S), style.getPropertyValue("--susceptible").trim());
+  plot(series.map((s) => s.R), style.getPropertyValue("--resistant").trim());
+  plot(series.map((s) => s.W), style.getPropertyValue("--wasp").trim());
+}
+
+function renderPatches() {
+  for (let i = 0; i < PATCHES; i++) {
+    const s = history[history.length - 1];
+    const p = patchEls[i];
+    const rprop = s.N[i] > 0 ? s.resistantProportion[i] : NaN;
+    p.rprop.textContent = Number.isNaN(rprop)
+      ? "no aphids"
+      : `${fmtPct(rprop)} resistant`;
+    const series = history.map((h) => ({ S: h.S[i], R: h.R[i], W: h.W[i] }));
+    drawPatchChart(p.canvas, series);
+  }
+}
+
+function narrate() {
+  const s = history[history.length - 1];
+  const totalW = s.W.reduce((a, b) => a + b, 0);
+  const totalN = s.N.reduce((a, b) => a + b, 0);
+  const overallR = totalN > 0 ? s.R.reduce((a, b) => a + b, 0) / totalN : NaN;
+
+  el.narrative.classList.remove("warn");
+  if (turn === 0) {
+    el.narrative.textContent = "Day 0. Populations are seeded. Advance a cycle to see what happens.";
+    return;
+  }
+  if (totalW < 1) {
+    el.narrative.classList.add("warn");
+    el.narrative.textContent =
+      "The parasitoid population has collapsed. Without parasitism pressure, the resistant clone's slower growth rate is a pure cost with no compensating benefit — expect susceptible aphids to take over from here.";
+    return;
+  }
+  if (Number.isNaN(overallR) || overallR < 0.02) {
+    el.narrative.classList.add("warn");
+    el.narrative.textContent = "The resistant clone has been excluded. Susceptible aphids now dominate both cages.";
+    return;
+  }
+  if (overallR > 0.98) {
+    el.narrative.textContent = "The susceptible clone has been excluded — only resistant aphids remain.";
+    return;
+  }
+  el.narrative.textContent =
+    `Day ${s.day}. Parasitoids are holding on (~${Math.round(totalW)} adults total), and both aphid clones are still present (${fmtPct(overallR)} resistant overall).`;
+}
+
+function newSimulation() {
+  const initRFrac = Number(el.initR.value) / 100;
+  const halfN = CALIBRATED_DEFAULTS.patchCarryingCapacity / 2;
+  const initialS = new Array(PATCHES).fill(halfN * (1 - initRFrac));
+  const initialR = new Array(PATCHES).fill(halfN * initRFrac);
+  const initialW = new Array(PATCHES).fill(10);
+
+  sim = createSimulation({
+    patches: PATCHES,
+    deltaA: Number(el.deltaA.value),
+    gamma: Number(el.gamma.value),
+    initialS, initialR, initialW,
+    seed: (Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0,
+  });
+  turn = 0;
+  history = [sim.state()];
+
+  buildPatchCards();
+  el.dayCounter.textContent = "0";
+  el.turnCounter.textContent = "0";
+  el.initR.disabled = true;
+  el.startBtn.disabled = true;
+  el.resetBtn.disabled = false;
+  el.advanceBtn.disabled = false;
+  renderPatches();
+  narrate();
+}
+
+function advanceTurn() {
+  if (!sim) return;
+  const deltaA = Number(el.deltaA.value);
+  const gamma = Number(el.gamma.value);
+  for (let d = 0; d < TRANSCRIBED.harvestIntervalDays; d++) sim.step(deltaA, gamma);
+  turn += 1;
+  history.push(sim.state());
+  if (history.length > HISTORY_LIMIT) history = history.slice(-HISTORY_LIMIT);
+
+  el.dayCounter.textContent = String(history[history.length - 1].day);
+  el.turnCounter.textContent = String(turn);
+  renderPatches();
+  narrate();
+}
+
+el.startBtn.addEventListener("click", newSimulation);
+el.resetBtn.addEventListener("click", () => {
+  el.initR.disabled = false;
+  el.startBtn.disabled = false;
+  el.resetBtn.disabled = true;
+  el.advanceBtn.disabled = true;
+  sim = null;
+  el.narrative.classList.remove("warn");
+  el.narrative.textContent = "Set your starting conditions above, then press Start.";
+  el.patches.innerHTML = "";
+  el.dayCounter.textContent = "0";
+  el.turnCounter.textContent = "0";
+});
+el.advanceBtn.addEventListener("click", advanceTurn);
+
+window.addEventListener("resize", () => { if (sim) renderPatches(); });
+</script>
+</body>
+</html>
