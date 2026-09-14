@@ -44,6 +44,10 @@
     max-width: 640px;
     margin-inline: auto;
   }
+  nav.pages { font-size: 0.82rem; margin-bottom: 14px; }
+  nav.pages a { color: var(--muted); text-decoration: none; }
+  nav.pages a.current { color: var(--accent); font-weight: 600; }
+  nav.pages span.sep { color: var(--line); margin: 0 6px; }
   h1 { font-size: 1.3rem; margin: 0 0 4px; }
   .lede { color: var(--muted); font-size: 0.92rem; margin: 0 0 18px; }
   .lede strong { color: var(--ink); }
@@ -111,6 +115,8 @@
 </style>
 </head>
 <body>
+
+<nav class="pages"><a href="index.html" class="current">Dispersal Lab</a><span class="sep">&middot;</span><a href="hidden-trap.html">Farm Manager</a></nav>
 
 <h1>Dispersal Lab: Aphids &amp; Parasitoids</h1>
 <p class="lede">

@@ -216,6 +216,73 @@ full 28-field model's thresholds.
   "same parameters, different starting resistant proportion, different outcome"
   without first re-checking this** — as calibrated, it isn't true here.
 
+## Farm-manager model calibration (`js/model-farm.js`, 2026-09-14)
+
+A second model variant, for the "hidden trap" conservation-biological-control mechanic
+from `docs/DESIGN.md`. **This is a deliberately separate file from `js/model.js`, not a
+shared one** — see `js/model-farm.js`'s header comment for the full reasoning; short
+version: the dispersal-lab model's instantaneous (no stage structure) aphid growth
+produces chaotic boom-bust swings over many harvest cycles, which is fine for a single
+binary crash/persist read but useless for a mechanic that needs a smooth, legible
+multi-season trend. Confirmed chaotic via direct testing before building this variant:
+patch-averaging (2 and 8 patches), seed-ensembling (40 seeds), and several alternate
+`(K, attackH)` calibrations of the *original* growth mechanism all stayed chaotic —
+this isn't a tuning problem, it's structural.
+
+**The fix:** add a maturation delay for aphids (newborns spend `maturationDays` days as
+non-reproducing juveniles before joining the adult pool — the same delay-queue
+mechanism already used for wasp mummies), instead of the original model's "unattacked
+aphids reproduce their whole daily growth rate in one instantaneous jump." This is a
+real simplification of actual pea aphid development (nymphs mature over roughly a week)
+that the dispersal-lab reduction had collapsed away entirely; reintroducing it damps
+single-generation overshoot, a standard stabilizing effect of stage structure in
+discrete-time population models. Confirmed to work: the same γ/δ_a sweep that produced
+chaos in the original model produces smooth, monotonically-converging trajectories in
+this variant (see commit history for the diagnostic sweeps).
+
+**What's transcribed vs. chosen vs. derived**, since this file mixes all three:
+
+- Transcribed (identical to `js/model.js`, unchanged): parasitism functional response
+  (`a`, `k`), resistance benefit (0.73), dispersal mechanics, harvest mechanics, wasp
+  life history.
+- Chosen, not transcribed (literature-plausible, not fitted): `maturationDays = 5`,
+  `adultSurvival = 0.95`. Real pea aphid nymphal development is roughly a week; this
+  wasn't fit to any specific figure.
+- Derived (not independently chosen): daily fecundity for each clone, and the
+  density-dependence damping factor at `N=K`, are computed at simulation start
+  (`calibrateFecundity`, the internal `calibrateDampingAtK`) from the transcribed
+  `lambdaS`/`lambdaR` (1.26/1.21) plus the two chosen structural constants above, via
+  bisection so that (a) a parasitism-free, density-independent population asymptotically
+  grows at exactly the transcribed rate, and (b) `N=K` is a true equilibrium (growth
+  rate exactly 1 there). This keeps `lambdaS`/`lambdaR`'s transcribed meaning intact
+  rather than introducing free-floating fecundity numbers.
+
+**What this variant is actually validated for** (`test/model-farm.test.mjs`, 5 seeds):
+holding γ at the nominal 1.0 and varying aphid dispersal δ_a as the player's single
+lever, higher sustained δ_a produces (1) a higher long-run resistant proportion, (2) a
+*higher*, not lower, aphid load by season's end (worse yield despite more investment),
+and (3) comparable wasp abundance between low and high investment — i.e. the wasp
+population itself doesn't reveal the problem, matching DESIGN.md's "apparent signal
+understates the real effect." Individual runs also show an initial control dip
+(aphids drop sharply in the first few cycles) followed by a climb back up as resistance
+rises — the "wins for two seasons, then degrades" shape DESIGN.md describes.
+
+**Framing decision:** δ_a, not γ, is this mode's single farmer-facing lever ("habitat
+connectivity investment"), reusing DESIGN.md's own note that δ_a "has a plausible
+physical handle (field connectivity, spacing, barriers)" — unlike γ, which DESIGN.md's
+"γ problem" section flags as not having an honest farmer-facing name. This sidesteps
+that unresolved framing question entirely for this mode; γ is held fixed at the nominal
+1.0 and not exposed to the player here.
+
+**Not validated / do not assume:** this variant's relationship between γ and outcome —
+briefly tested, it runs in the *opposite* direction from intuition (lower γ produced a
+higher resistant-proportion plateau than higher γ in early testing) and was not
+investigated further once δ_a proved to give a clean, correctly-signed, robust result.
+Do not expose γ as a lever in the farm-manager mode without redoing this analysis. This
+variant also does not reproduce `js/model.js`'s low-δ_a parasitoid-crash threshold —
+wasps stayed stable across the whole δ_a range tested here (0–0.35); that mechanism is
+`js/model.js`'s alone.
+
 ## Source of truth
 
 1. `lucasnell/gameofclones` v1.0.2 — https://doi.org/10.5281/zenodo.8429166

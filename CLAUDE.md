@@ -94,8 +94,33 @@ proportion set once and locked (never overwritten directly, satisfying hard cons
 **if you change the model, update both** (or extract a shared build step later; not
 worth it yet for one page).
 
-Not yet done: the "hidden trap" conservation-biological-control mechanic from
-`docs/DESIGN.md` (a separate mechanic — crop yield vs. resistance evolution — not yet
-modeled at all); the diversity-dial / epidemic / harvest-timing / Geber-scoreboard
-parked ideas; a landscape-framing mode for γ; embedding this into lucasnell.com itself
-(this repo is currently standalone, not linked from the Quarto site).
+**Hidden-trap / farm-manager mode shipped** (`hidden-trap.html`). This mode needed a
+smooth multi-season trend, which `js/model.js`'s growth mechanism can't produce (it's
+chaotic over many harvest cycles — confirmed via patch-averaging, seed-ensembling, and
+several alternate calibrations, all still chaotic; this is structural, not a tuning
+gap). Fixed by adding aphid stage structure (a maturation delay, same mechanism as the
+existing wasp-mummy queue) in a **separate** model file, `js/model-farm.js` — do not
+merge this back into `js/model.js` without re-validating both pages' acceptance tests.
+See `docs/MODEL.md`'s "Farm-manager model calibration" for the full record: what's
+transcribed vs. chosen vs. derived, and what this variant is and isn't validated for
+(notably: γ's effect ran the *wrong direction* in early testing and was abandoned in
+favor of δ_a as the single player-facing lever — don't expose γ here without redoing
+that analysis; this variant also does not reproduce `js/model.js`'s low-δ_a crash
+threshold, that's not what it's for). 5/5 tests pass in `test/model-farm.test.mjs`,
+verified in real headless Chrome at mobile/desktop widths, screenshots in commit
+history. The investment-to-δ_a range (`MIN_DELTA_A`/`MAX_DELTA_A` in `hidden-trap.html`)
+was widened from an initial 0.02–0.35 to 0–0.9 during playtesting because the narrower
+range was correctly signed but the season-5 yield gap between 0% and 100% investment was
+only 1–2 percentage points — too subtle to read as a game. Keep `test/model-farm.test.mjs`
+in sync if this range changes again.
+
+Explicitly dropped, per product decision (2026-09-14) — do not build unless asked again:
+harvest-timing lever, Geber scoreboard, diversity-dial level, epidemic-diagnosis level.
+These would have hit the same chaos problem as the hidden trap (confirmed for
+harvest-timing/Geber via the same diagnostic sweeps); diversity-dial and epidemic are
+unrelated systems with no reference code, needing their own from-scratch transcription
+from `docs/papers/Yoshida...` and `docs/papers/Duffy...` if ever revisited.
+
+Not yet done: a landscape-framing mode for γ in the dispersal lab; embedding this
+into lucasnell.com itself (this repo is currently standalone, not linked from the
+Quarto site).
