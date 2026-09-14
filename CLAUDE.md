@@ -72,5 +72,18 @@ full system.
 
 ## Current state
 
-Design phase. Mechanics chosen, nothing built. Next step is the reduced model spec
-in `docs/MODEL.md` and the headless simulation.
+Headless simulation built and passing (`js/model.js`, `node --test test/`). Model
+parameters/mechanics transcribed from the `gameofclones` source (see `docs/MODEL.md`'s
+"Transcription record"), calibrated, and validated against a *subset* of the original
+acceptance-criteria table — **read `docs/MODEL.md`'s "Calibration notes" before building
+any UI or level**, since v1 was explicitly shipped on the mechanisms that work
+(low-δ_a / low-γ → parasitoid crash → resistant clone excluded) rather than the full
+table. Two mechanisms are documented as open gaps, not silently dropped: the high-δ_a
+homogenization/collapse bifurcation, and DESIGN.md's domain-of-attraction bistability.
+Do not design a level around either without re-verifying against the model first.
+
+No rendering code yet. Next step: a first playable UI (single-file `index.html`,
+vanilla JS, per "Repo conventions" above) built around the validated mechanism —
+most likely the two-patch lab-experiment tutorial `docs/MODEL.md` already flags as
+"probably the right first playable," using the lab-instrument framing for γ from
+`docs/DESIGN.md` (still an open decision vs. the landscape framing).
