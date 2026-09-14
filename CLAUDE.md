@@ -82,8 +82,20 @@ table. Two mechanisms are documented as open gaps, not silently dropped: the hig
 homogenization/collapse bifurcation, and DESIGN.md's domain-of-attraction bistability.
 Do not design a level around either without re-verifying against the model first.
 
-No rendering code yet. Next step: a first playable UI (single-file `index.html`,
-vanilla JS, per "Repo conventions" above) built around the validated mechanism —
-most likely the two-patch lab-experiment tutorial `docs/MODEL.md` already flags as
-"probably the right first playable," using the lab-instrument framing for γ from
-`docs/DESIGN.md` (still an open decision vs. the landscape framing).
+**First playable shipped** (`index.html`, single file, no dependencies, verified in a
+real headless Chrome at mobile and desktop widths — see commit history for the
+Playwright check). Two-cage tutorial matching the lab experiment, lab-instrument framing
+for γ (the open framing decision in `docs/DESIGN.md` — landscape framing is still
+unbuilt, revisit if wanted), player controls only δ_a/γ between turns, initial resistant
+proportion set once and locked (never overwritten directly, satisfying hard constraint
+4), failures shown as explanatory narrative rather than game-over (hard constraint 5).
+
+`js/model.js`'s logic is duplicated by hand inside `index.html`'s inline `<script>` —
+**if you change the model, update both** (or extract a shared build step later; not
+worth it yet for one page).
+
+Not yet done: the "hidden trap" conservation-biological-control mechanic from
+`docs/DESIGN.md` (a separate mechanic — crop yield vs. resistance evolution — not yet
+modeled at all); the diversity-dial / epidemic / harvest-timing / Geber-scoreboard
+parked ideas; a landscape-framing mode for γ; embedding this into lucasnell.com itself
+(this repo is currently standalone, not linked from the Quarto site).
