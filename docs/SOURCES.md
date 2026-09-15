@@ -1,6 +1,10 @@
 # Source literature
 
-What each paper contributes to this project. PDFs should be added to `docs/papers/`.
+What each paper contributes to this project. PDFs can be added locally to
+`docs/papers/` for reference, but that directory is gitignored and was purged from
+git history entirely on 2026-09-15 before this repo went public (copyrighted
+journal-article/book PDFs, not all authored by the repo owner). Re-source them from
+Zotero if needed; do not re-commit them.
 
 ## Primary
 

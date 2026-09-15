@@ -1,2 +1,7 @@
 .DS_Store
 node_modules/
+
+# Copyrighted reference PDFs (not all authored by the repo owner) -- kept locally for
+# reference, not committed. Purged from git history 2026-09-15 before making this repo
+# public. Copies live in Zotero if needed again.
+docs/papers/
