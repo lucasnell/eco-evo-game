@@ -1,14 +1,20 @@
-# Session handoff — 2026-09-14
+# Session handoff — 2026-09-14 (updated 2026-09-15)
 
 Read this first if you're picking this project up cold. It's a narrative summary of
-one session's work; `CLAUDE.md` and `docs/MODEL.md`/`DESIGN.md` are the living
+past sessions' work; `CLAUDE.md` and `docs/MODEL.md`/`DESIGN.md` are the living
 reference docs and take precedence if anything here goes stale.
+
+**2026-09-15 update:** pushed to GitHub — `lucasnell/eco-evo-game`, public, `main`
+branch. Before pushing, `docs/papers/` (8 copyrighted third-party PDFs, not all
+authored by the repo owner) was purged from git history entirely with
+`git filter-repo` and gitignored going forward — see `docs/SOURCES.md`. The
+"no remote" risk noted below on 09-14 no longer applies; that's why this update
+exists.
 
 ## Where this stands
 
-Two playable pages exist, both single-file HTML/vanilla JS, both committed, neither
-pushed anywhere (this repo has no git remote configured yet — it's local-only,
-`~/GitHub/eco-evo-game`, 6 commits on `main`).
+Two playable pages exist, both single-file HTML/vanilla JS, all committed and pushed
+to `github.com/lucasnell/eco-evo-game` (public, `main`).
 
 - **`index.html` — "Dispersal Lab."** Two-cage tutorial. Player tunes δ_a (aphid
   dispersal) and γ (parasitoid dispersal heterogeneity) between turns and watches
@@ -100,24 +106,21 @@ the same edit by hand (no build step to keep them in sync automatically).
 
 ## Immediate next steps, roughly in order of likely value
 
-1. **Push somewhere.** This repo has no remote — it only exists on this machine.
-   That's the single biggest risk to the work right now.
-2. **Play both pages yourself** and see if the pacing, tone, and visual design actually
+1. **Play both pages yourself** and see if the pacing, tone, and visual design actually
    land for the intended teen audience — nothing here has had real playtesting beyond
    the automated browser checks.
-3. **Decide on embedding into lucasnell.com.** This repo is currently standalone. The
-   website (`~/GitHub/nell_website_quarto`, docs at
-   `~/Library/CloudStorage/Box-Box/claude/website`) is now live (cutover happened
-   2026-09-14, continuous deployment wired up) — if/when this game should be linked
-   from the site, that's a separate piece of work in that other repo, most likely a
-   new `resources/<slug>/index.qmd` page or an iframe/link out to wherever these HTML
-   files end up hosted.
-4. **The two documented-but-unsolved threads**, only worth chasing if a specific level
+2. **Decide on embedding into lucasnell.com.** This repo is currently standalone. The
+   website (`~/GitHub/nell_website_quarto` — `CLAUDE.md`/`docs/` live in that repo now,
+   not in Box) is live (cutover happened 2026-09-14, continuous deployment wired up) —
+   if/when this game should be linked from the site, that's a separate piece of work
+   in that other repo, most likely a new `resources/<slug>/index.qmd` page or an
+   iframe/link out to wherever these HTML files end up hosted.
+3. **The two documented-but-unsolved threads**, only worth chasing if a specific level
    design needs them: the dispersal lab's high-δ_a instability (would need either many
    more simulated patches or actual linearized stability analysis, not more
    trial-and-error simulation — see `docs/MODEL.md`), and the farm-manager model's
    backwards γ effect (never investigated past the point of switching to δ_a instead).
-5. **`docs/DESIGN.md`'s still-open questions** haven't moved: landscape vs.
+4. **`docs/DESIGN.md`'s still-open questions** haven't moved: landscape vs.
    lab-instrument framing for γ (the dispersal lab uses lab-instrument; the farm
    manager mode sidestepped the question by not exposing γ at all), and whether
    initial resistant proportion should be player-set or dealt (currently player-set in
