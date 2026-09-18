@@ -31,6 +31,17 @@ only after the fact, using the numbers from the year you just played.
 
 Requires [Godot 4](https://godotengine.org/) (developed against 4.7).
 
+**Run this once after cloning**, before anything else:
+
+```sh
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import
+```
+
+Godot keeps its registry of `class_name` declarations in `.godot/`, which is gitignored,
+so a fresh clone has no record that `EcoSim`, `FieldView` and friends exist. Without an
+import pass the first run dies with a wall of `Could not find type "EcoSim"` parse
+errors. Opening the project in the Godot editor once does the same job.
+
 ```sh
 # play
 /Applications/Godot.app/Contents/MacOS/Godot --path .
@@ -42,9 +53,6 @@ Requires [Godot 4](https://godotengine.org/) (developed against 4.7).
 /Applications/Godot.app/Contents/MacOS/Godot --path . --script res://test/capture.gd
 /Applications/Godot.app/Contents/MacOS/Godot --path . --script res://test/capture.gd -- fail
 ```
-
-If `class_name` lookups fail on a fresh clone, run `--headless --path . --import` once
-to build Godot's script class cache.
 
 ## Layout
 
