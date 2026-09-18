@@ -5,3 +5,4 @@ node_modules/
 # reference, not committed. Purged from git history 2026-09-15 before making this repo
 # public. Copies live in Zotero if needed again.
 docs/papers/
+*.pdf
