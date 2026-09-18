@@ -62,6 +62,14 @@ teaches the wrong thing.
 - Anything that varies per-frame must not change the simulation. Population state
   advances only in `EcoSim.step()`, one simulated day at a time, independent of framerate
   or the speed the player has selected.
+- **Work directly on `main`** (owner's instruction, 2026-09-18). No feature branches for
+  now — this is a single-author project and the branch round-trip cost more friction than
+  it was worth. If a session is forced into a git worktree (background jobs create one
+  automatically, on a branch), merge it back to `main` and confirm the merge landed
+  before the session ends; do not leave work stranded on a branch. Verify by checking
+  that `main`'s SHA actually moved, not by trusting a "merge" that ran in the worktree —
+  a merge run from the worktree reports "Already up to date" and does nothing, because
+  the worktree is already on that branch.
 
 ## Reference implementation
 
