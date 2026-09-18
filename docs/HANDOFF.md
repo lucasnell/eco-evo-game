@@ -1,8 +1,18 @@
-# Session handoff — 2026-09-14 (updated 2026-09-15)
+# Session handoff — 2026-09-14 (updated 2026-09-15, superseded 2026-09-18)
 
 Read this first if you're picking this project up cold. It's a narrative summary of
 past sessions' work; `CLAUDE.md` and `docs/MODEL.md`/`DESIGN.md` are the living
 reference docs and take precedence if anything here goes stale.
+
+> **2026-09-18: most of what follows is now history, not current state.** The project
+> owner's verdict on the two HTML pages was that they "aren't really games; they're just
+> interactive figures," and asked for an actual game in Godot. Both pages, `js/` and the
+> node tests were deleted and replaced by a Godot 4 game (`scripts/sim.gd` +
+> `scripts/game.gd`, `README.md` for how to run it). Read `CLAUDE.md`'s "Current state"
+> and `docs/MODEL.md`'s "Godot port" section for what actually exists now. Everything
+> below is kept because the *reasoning* — why the model is a reduction, what calibrated
+> cleanly and what didn't, why the farm-manager variant needed stage structure — still
+> explains why the simulation looks the way it does.
 
 **2026-09-15 update:** pushed to GitHub — `lucasnell/eco-evo-game`, public, `main`
 branch. Before pushing, `docs/papers/` (8 copyrighted third-party PDFs, not all
