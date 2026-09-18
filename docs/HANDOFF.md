@@ -117,7 +117,8 @@ the same edit by hand (no build step to keep them in sync automatically).
 ## Immediate next steps, roughly in order of likely value
 
 1. **Play both pages yourself** and see if the pacing, tone, and visual design actually
-   land for the intended teen audience — nothing here has had real playtesting beyond
+   land for the intended audience (teens at the time; undergraduates as of 2026-09-18)
+   — nothing here has had real playtesting beyond
    the automated browser checks.
 2. **Decide on embedding into lucasnell.com.** This repo is currently standalone. The
    website (`~/GitHub/nell_website_quarto` — `CLAUDE.md`/`docs/` live in that repo now,

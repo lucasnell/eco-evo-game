@@ -2,9 +2,17 @@
 
 ## Audience and scope
 
-Teens. Short-form — currently targeting something a teacher could drop into a class
-period, not a game with hours of progression. Scope may expand later; do not build
-progression scaffolding yet.
+**Undergraduates** (confirmed 2026-09-18; this doc previously said teenagers). Short-form
+— currently targeting something an instructor could drop into a class period, not a game
+with hours of progression. Scope may expand later; do not build progression scaffolding
+yet.
+
+What the change buys: undergraduates can carry more inferential load than the original
+target audience. They can be expected to read a time series, hold a hypothesis across
+several turns, and tolerate a mechanic whose payoff is delayed — which is what makes the
+hidden-state/sampling scoring loop in "Redesign in progress" viable rather than
+punishing. It does **not** license jargon: parameter names still need honest plain-language
+handles, and the γ treatment described under "Open questions" still stands.
 
 ## Chosen core: the Nell et al. dispersal system
 
@@ -42,7 +50,7 @@ landscape structure and aphid density that was *estimated* from field data. Aphi
 dispersal has a plausible physical handle (field connectivity, spacing, barriers);
 parasitoid dispersal heterogeneity does not.
 
-Handing a teenager a slider labeled "parasitoid dispersal heterogeneity" teaches them
+Handing a student a slider labeled "parasitoid dispersal heterogeneity" teaches them
 it is a knob on the world. Two ways out:
 
 1. **Lab-instrument framing (preferred for core).** The player is explicitly a modeler
@@ -186,12 +194,9 @@ Setting and scoring loop are **independent** choices; they can be mixed freely.
 
 ### Unresolved — ask before assuming
 
-- **Audience.** `CLAUDE.md` says teenagers; the owner has now asked for ideas that
-  "resonate with undergraduate students." Confirm which, since it changes tone, session
-  length, and how much inferential load the game can carry.
-- **Which to settle first**, the setting or the scoring loop.
-
-The owner was asked both questions and left before answering, so start there.
+- ~~**Audience.**~~ **Settled 2026-09-18: undergraduates.** See "Audience and scope" at
+  the top of this doc for what that buys.
+- **Which to settle first**, the setting or the scoring loop. Still open — start here.
 
 ### Invariants for any reskin
 

@@ -2,7 +2,7 @@
 
 ## What this project is
 
-A short-form educational game teaching **eco-evolutionary dynamics** to teenagers,
+A short-form educational game teaching **eco-evolutionary dynamics** to undergraduates,
 built on the pea aphid (*Acyrthosiphon pisum*) / *Aphidius ervi* parasitoid system.
 The player manipulates **aphid dispersal** and **parasitoid dispersal heterogeneity**
 and observes how those choices determine whether the system persists.
@@ -81,10 +81,10 @@ full system.
 > the owner has rejected two things about it — the real-time pacing ("intense, hard to
 > keep track of") and the farm framing (system stability is not the same as crop yield).
 > **Read `docs/DESIGN.md`'s "Redesign in progress" section before doing any work**, and
-> do not keep polishing the current build. Two questions were put to the owner and not
-> answered before the session ended: whether the audience is now undergraduates rather
-> than teenagers, and whether to settle the setting or the scoring loop first. Start
-> there. The simulation itself is not in question and should be reusable as-is.
+> do not keep polishing the current build. One question is still open: whether to settle
+> the setting or the scoring loop first — start there. (The audience question was
+> answered on 2026-09-18: **undergraduates**, not teenagers.) The simulation itself is
+> not in question and should be reusable as-is.
 
 **Rebuilt as a Godot 4 game (2026-09-18).** The earlier deliverables — two single-file
 HTML pages (`index.html` dispersal lab, `hidden-trap.html` farm manager) plus the JS
