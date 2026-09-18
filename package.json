@@ -1,9 +1,0 @@
-{
-  "name": "eco-evo-game",
-  "private": true,
-  "type": "module",
-  "description": "Headless reduced eco-evolutionary dynamics simulation and test harness. The shipped deliverable is a single-file index.html; js/ is dev-time-only, inlined into index.html once the front end is built.",
-  "scripts": {
-    "test": "node --test test/"
-  }
-}

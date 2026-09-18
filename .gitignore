@@ -1,8 +1,15 @@
 .DS_Store
-node_modules/
+
+# Godot's import cache and per-machine editor state.
+.godot/
+export_presets.cfg
+
+# Screenshots produced by test/capture.gd.
+shots/
 
 # Copyrighted reference PDFs (not all authored by the repo owner) -- kept locally for
 # reference, not committed. Purged from git history 2026-09-15 before making this repo
 # public. Copies live in Zotero if needed again.
 docs/papers/
+pdfs/
 *.pdf

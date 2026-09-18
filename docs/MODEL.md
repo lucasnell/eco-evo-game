@@ -283,6 +283,78 @@ variant also does not reproduce `js/model.js`'s low-δ_a parasitoid-crash thresh
 wasps stayed stable across the whole δ_a range tested here (0–0.35); that mechanism is
 `js/model.js`'s alone.
 
+## Godot port (`scripts/sim.gd`, 2026-09-18)
+
+The shipped simulation is now GDScript, not JS. `js/model.js` and `js/model-farm.js`
+were deleted along with the two HTML pages (see `CLAUDE.md`'s "Current state"); this
+section is the record of what carried over, what changed, and what was re-validated.
+
+**Carried over unchanged from `js/model.js`** — every transcribed constant and mechanism
+in the "Transcription record" above: the parasitism functional response (`a` = 2.32,
+`k` = 0.35, May 1978 negative-binomial aggregation on a Holling-II mean), the resistance
+trade-off (0.73 survival benefit; λ 1.26 → 1.21), the 10-day mummy queue, adult wasp
+survival 0.69, the wasp emigration form `m0·exp(-m1·ln z)` with `m0` = 0.3 and
+`m1` = 0.34906·γ, the attractiveness draw's `0.5844·γ` scale, 28-day staggered harvest
+with U(0.01, 0.04) aphid survival and 100% mummy mortality, and the 0.20 alate fraction.
+The calibrated (not transcribed) `K` = 500 and `attackH` = 2.0 also carried over
+unchanged, so the deterministic mean dynamics are the ones validated in "Calibration
+notes" above.
+
+**Three changes, each deliberate:**
+
+1. **Demographic stochasticity (new).** The JS reduction was deterministic, so nothing
+   could ever actually go extinct — populations just got arbitrarily small. A game needs
+   extinction to be a real outcome. Counts are now drawn from Poisson (reproduction,
+   eclosion) and binomial (attack, post-attack survival, adult survival, emigration,
+   harvest survival) distributions, with multinomial allocation of dispersal pools.
+   **All rates are still computed in the validated density units**, and noise is applied
+   by converting a density to individuals through `IND_SCALE` = 20 individuals per
+   density unit, drawing, and converting back — so the *mean* dynamics are exactly the
+   calibrated ones and only the variance is new. `IND_SCALE` is a game-tuning knob: it
+   sets how often a bad landscape actually kills something.
+   *Watch out:* an early attempt scaled `K` and `attackH` instead, to make populations
+   larger and noise relatively weaker. That is **not** dynamics-preserving — the `+1` in
+   `a·W/(h·N+1)` and the `z^(-m1)` in wasp emigration are both absolute-scale terms, and
+   the "equivalent" rescaling silently multiplied attack pressure tenfold. Do not rescale
+   `K`/`attackH`; change `IND_SCALE`.
+2. **Six fields, not two or three.** Enough to read as a landscape on screen, and enough
+   for the between-field mosaic to mean something.
+3. **Network dispersal, replacing the global pool.** Aphids emigrate only from fields
+   with open corridors, at a rate scaled by that field's degree
+   (`MAX_EMIGRATION · links/MAX_LINKS_PER_FIELD · alate fraction`), and land in a
+   connected neighbour. Wasps still ignore the network — they fly, and are allocated by
+   attractiveness, as transcribed. δ_a and γ are therefore *derived* quantities now
+   (`delta_a_effective()`, `gamma_effective()`), not inputs, because the player builds a
+   landscape rather than setting parameters. γ is computed as the standard deviation of
+   the shelter-derived log attractiveness, divided by the transcribed `0.5844`, so it
+   stays on the same scale as the source model's γ and the γ ≥ 0.6 threshold from the
+   acceptance table is still meaningful.
+
+**What re-validation showed** (`test/test_sim.gd`, 16 seeds × 18 harvest cycles, driven
+through the corridor/shelter interface):
+
+| Landscape | Result |
+|---|---|
+| 4 of 7 corridors, shelter on alternating fields (δ_a ≈ 0.40, γ ≈ 1.28) | 16/16 all three persist |
+| No corridors (δ_a = 0) | 0/16 intact; 15/16 lose the parasitoid first |
+| Uniform shelter, bare everywhere (γ = 0) | 2/16 intact |
+| Uniform shelter, maximum everywhere (γ = 0) | 2/16 intact — same failure, which is the point |
+| All 7 corridors open (δ_a ≈ 0.9) | mosaic 0.020 vs 0.085 sparse: populations survive, variation does not |
+
+Resistance swung >15 percentage points in 16/16 persisting runs, and lagged parasitism by
+a mean 81 days (cross-correlation, first 30 days dropped) — the eco-evo loop, measured.
+
+**Newly reproduced, having been an open gap:** the high-δ_a homogenization mechanism.
+"Calibration notes" above records that the 2–3 patch JS reduction could not produce it and
+that no level should depend on it. With six fields it appears, but **as loss of the
+between-field mosaic rather than as the paper's saddle-node collapse to extinction**. The
+game scores it as a distinct, non-fatal failure ("everything survived, nothing varied"),
+which is what the model actually supports. The full δ_a > 0.258 global instability is
+still not reproduced, and still should not be built on.
+
+**Still not reproduced:** DESIGN.md's domain-of-attraction bistability. Untested in the
+Godot port; assume the finding in "Calibration notes" still stands until someone checks.
+
 ## Source of truth
 
 1. `lucasnell/gameofclones` v1.0.2 — https://doi.org/10.5281/zenodo.8429166

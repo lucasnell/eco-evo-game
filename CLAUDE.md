@@ -48,15 +48,20 @@ teaches the wrong thing.
 
 ## Repo conventions
 
+- **The deliverable is a Godot 4 game** (developed against 4.7). `scripts/sim.gd` is the
+  simulation and the single source of truth for the dynamics; everything else draws it.
 - Simulation logic must be **headless and testable first**. No rendering code until the
-  dynamics pass the threshold tests in `docs/MODEL.md`.
-- Simulation bugs and rendering bugs look identical on a canvas. Keep them separable.
+  dynamics pass the threshold tests in `docs/MODEL.md`. `test/test_sim.gd` runs headless
+  via `Godot --headless --path . --script res://test/test_sim.gd`.
+- Simulation bugs and rendering bugs look identical on a canvas. Keep them separable —
+  that is what `test/capture.gd` (renders the real scene to `shots/`) is for.
 - Seed all RNG explicitly. Unseeded clone-trait draws make it impossible to distinguish
   a real parameter effect from a lucky sample.
 - Cap or adapt the integrator timestep. These dynamics stiffen at high dispersal and
   high harvest mortality.
-- Prefer a single-file HTML + vanilla JS front end. No build step, no framework.
-  The deliverable should run by opening a file.
+- Anything that varies per-frame must not change the simulation. Population state
+  advances only in `EcoSim.step()`, one simulated day at a time, independent of framerate
+  or the speed the player has selected.
 
 ## Reference implementation
 
@@ -72,55 +77,52 @@ full system.
 
 ## Current state
 
-Headless simulation built and passing (`js/model.js`, `node --test test/`). Model
-parameters/mechanics transcribed from the `gameofclones` source (see `docs/MODEL.md`'s
-"Transcription record"), calibrated, and validated against a *subset* of the original
-acceptance-criteria table — **read `docs/MODEL.md`'s "Calibration notes" before building
-any UI or level**, since v1 was explicitly shipped on the mechanisms that work
-(low-δ_a / low-γ → parasitoid crash → resistant clone excluded) rather than the full
-table. Two mechanisms are documented as open gaps, not silently dropped: the high-δ_a
-homogenization/collapse bifurcation, and DESIGN.md's domain-of-attraction bistability.
-Do not design a level around either without re-verifying against the model first.
+**Rebuilt as a Godot 4 game (2026-09-18).** The earlier deliverables — two single-file
+HTML pages (`index.html` dispersal lab, `hidden-trap.html` farm manager) plus the JS
+model files and their node tests — were **deleted**, at the project owner's request:
+they were interactive figures rather than games. Version control retains them (last
+present at commit 2fe8393), and `docs/MODEL.md` retains everything learned from building
+them. Do not resurrect them without being asked.
 
-**First playable shipped** (`index.html`, single file, no dependencies, verified in a
-real headless Chrome at mobile and desktop widths — see commit history for the
-Playwright check). Two-cage tutorial matching the lab experiment, lab-instrument framing
-for γ (the open framing decision in `docs/DESIGN.md` — landscape framing is still
-unbuilt, revisit if wanted), player controls only δ_a/γ between turns, initial resistant
-proportion set once and locked (never overwritten directly, satisfying hard constraint
-4), failures shown as explanatory narrative rather than game-over (hard constraint 5).
+What exists now is one game, `scripts/game.gd` + `scripts/sim.gd`, run with
+`Godot --path .`. See `README.md` for commands and layout.
 
-`js/model.js`'s logic is duplicated by hand inside `index.html`'s inline `<script>` —
-**if you change the model, update both** (or extract a shared build step later; not
-worth it yet for one page).
+**The player builds a landscape; the model parameters emerge from it.** This is the
+important design decision, and it resolves `docs/DESIGN.md`'s long-open "γ problem":
 
-**Hidden-trap / farm-manager mode shipped** (`hidden-trap.html`). This mode needed a
-smooth multi-season trend, which `js/model.js`'s growth mechanism can't produce (it's
-chaotic over many harvest cycles — confirmed via patch-averaging, seed-ensembling, and
-several alternate calibrations, all still chaotic; this is structural, not a tuning
-gap). Fixed by adding aphid stage structure (a maturation delay, same mechanism as the
-existing wasp-mummy queue) in a **separate** model file, `js/model-farm.js` — do not
-merge this back into `js/model.js` without re-validating both pages' acceptance tests.
-See `docs/MODEL.md`'s "Farm-manager model calibration" for the full record: what's
-transcribed vs. chosen vs. derived, and what this variant is and isn't validated for
-(notably: γ's effect ran the *wrong direction* in early testing and was abandoned in
-favor of δ_a as the single player-facing lever — don't expose γ here without redoing
-that analysis; this variant also does not reproduce `js/model.js`'s low-δ_a crash
-threshold, that's not what it's for). 5/5 tests pass in `test/model-farm.test.mjs`,
-verified in real headless Chrome at mobile/desktop widths, screenshots in commit
-history. The investment-to-δ_a range (`MIN_DELTA_A`/`MAX_DELTA_A` in `hidden-trap.html`)
-was widened from an initial 0.02–0.35 to 0–0.9 during playtesting because the narrower
-range was correctly signed but the season-5 yield gap between 0% and 100% investment was
-only 1–2 percentage points — too subtle to read as a game. Keep `test/model-farm.test.mjs`
-in sync if this range changes again.
+- Opening/closing **corridors** between fields sets aphid dispersal. A field's emigration
+  scales with how connected it is, so δ_a emerges from the network rather than being a
+  slider. No corridors → δ_a = 0; all seven open → ≈0.9.
+- Placing **shelter habitat** per field (0–2 bands) sets parasitoid dispersal
+  heterogeneity. What matters is the *unevenness*, not the amount: uniform shelter gives
+  γ = 0 whether every field is bare or every field is lush. γ is never shown as a dial,
+  which is the honest treatment DESIGN.md asked for, since it is an emergent landscape
+  property and not something anyone turns. The briefing screen says so explicitly.
+
+The player never selects a trait, never touches clone frequencies, and only changes the
+land — hard constraints 1, 2 and 4 hold. Failure ends in a data-driven causal narrative
+built from that run's own trajectory, not a game-over screen (constraint 5).
+
+**Validated.** `test/test_sim.gd`, 14 checks, all passing, driven through the same
+corridor/shelter interface the player uses (16 seeds × 18 harvest cycles each): good
+landscape 16/16 persist; no corridors 0/16 (and the parasitoid is what goes first,
+15/16); uniform shelter 2/16 whether bare or lush; between-field genetic variation
+collapses ~4× when everything is connected; resistance swings >15 points in 16/16 runs
+and lags parasitism by a mean 81 days. See `docs/MODEL.md`'s "Godot port" section.
+
+Two model changes were needed, and are documented there rather than silently made:
+population counts are now drawn from Poisson/binomial distributions (a game needs
+extinction to be genuinely possible; all *rates* stay in the validated density units, so
+the mean dynamics are unchanged), and the landscape is six fields rather than two or
+three. With six fields the reduction now does show the high-δ_a homogenization mechanism
+the old two-patch model could not — as loss of the between-field mosaic, not as
+extinction. The domain-of-attraction bistability remains unreproduced; don't build on it.
 
 Explicitly dropped, per product decision (2026-09-14) — do not build unless asked again:
 harvest-timing lever, Geber scoreboard, diversity-dial level, epidemic-diagnosis level.
-These would have hit the same chaos problem as the hidden trap (confirmed for
-harvest-timing/Geber via the same diagnostic sweeps); diversity-dial and epidemic are
-unrelated systems with no reference code, needing their own from-scratch transcription
-from `docs/papers/Yoshida...` and `docs/papers/Duffy...` if ever revisited.
+Diversity-dial and epidemic are unrelated systems with no reference code, needing their
+own from-scratch transcription from the Yoshida and Duffy papers if ever revisited.
 
-Not yet done: a landscape-framing mode for γ in the dispersal lab; embedding this
-into lucasnell.com itself (this repo is currently standalone, not linked from the
-Quarto site).
+Not yet done: a tutorial level distinct from the briefing screen; sound; a web export
+(Godot exports to HTML5, the obvious route to embedding this in lucasnell.com, which
+remains unlinked — this repo is still standalone).
