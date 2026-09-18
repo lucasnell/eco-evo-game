@@ -105,9 +105,100 @@ Any of these could become an alternate level. Kept here so they are not lost.
 
 ## Open questions
 
-- Lab-instrument framing vs. landscape framing for γ (see above).
-- How many patches to expose? The field model uses 28 fields; the lab experiment used
-  paired cages. Paired or small-N is far more readable on screen.
-- Does the player set initial resistant frequency, or is it dealt to them? Dealing it
-  makes the domain-of-attraction lesson land harder.
-- Where does the Geber-style scoreboard fit, if at all, in a short-form build?
+- ~~Lab-instrument vs. landscape framing for γ~~ — **resolved in the Godot build.**
+  Neither: γ is not exposed at all. The player places shelter habitat per field, and γ
+  emerges as the *unevenness* of the resulting wasp attractiveness. Uniform shelter gives
+  γ = 0 whether every field is bare or every field is lush. Keep this property in any
+  redesign; it is the honest treatment and it produces the best counterintuitive moment
+  in the game.
+- ~~How many patches to expose?~~ Six. Readable on screen, and enough for the
+  between-field mosaic to be a meaningful quantity.
+- Does the player set initial resistant frequency, or is it dealt to them? Currently
+  dealt — drawn per field at setup, varying across fields to seed a mosaic.
+- Where does the Geber-style scoreboard fit, if at all? Partly superseded: the Godot
+  build's end-of-year read-out measures the lag between parasitism and the resistance
+  response from the player's own run, which does similar teaching work more cheaply.
+
+## Redesign in progress (2026-09-18) — READ THIS BEFORE BUILDING ANYTHING
+
+The Godot build (see `CLAUDE.md`'s "Current state") is complete, validated and playable,
+but the project owner raised **two objections that block further polish**. Do not keep
+refining that build; the next session resumes this design discussion.
+
+### Objection 1 — pacing
+
+The real-time continuous simulation is too much to follow. Verbatim: "Wow, that was
+intense. Hard to keep track of things. Let's try a different approach that's more slow,
+perhaps even turn-based."
+
+Direction under discussion: **one turn = one harvest cycle (28 days)**, nothing advancing
+unless the player advances it. The transcribed 28-day cut already supplies a natural turn
+boundary, so this costs nothing in fidelity.
+
+### Objection 2 — the farm framing is scientifically wrong-footed
+
+Verbatim: "I'm also not sold on having it based on farming because stability of the
+aphid-parasitoid system is not necessarily good for crop yields."
+
+This is correct, and it is the more serious of the two. Note that the Godot build already
+*scores* stewardship (persistence + genetic variation) rather than yield, precisely
+because the model shows aphid load rising with dispersal — but the farm **setting** still
+implies the player ought to want a good harvest, which is the wrong lesson.
+
+Supporting point from the paper itself (read 2026-09-18): Nell et al.'s framing is
+**general ecology, not biological control** — it unites "what allows species to coexist"
+with "what maintains genetic variation in a population." Alfalfa is the study *setting*,
+not an applied pitch. Agriculture-as-goal is a framing the source does not support.
+
+### Candidate directions (proposed, none chosen)
+
+Setting and scoring loop are **independent** choices; they can be mixed freely.
+
+*Settings:*
+
+1. **Generation ship / sealed habitat (sci-fi).** Ecologist on a long voyage; pest and
+   parasitoid are both inside a closed life-support system and *cannot be restocked*.
+   Makes persistence and standing genetic variation the literal mission rather than an
+   imposed score, and removes the yield confound structurally. Harvest maps onto
+   scheduled rotation of the hydroponics bays.
+2. **Terraforming outpost.** Domes as patches, airlock corridors as dispersal. A looser
+   version of 1, with less force behind the "cannot restock" constraint.
+3. **Play the real biology as the fantastical hook.** The resistance is a phage inside a
+   bacterium inside the aphid, killing the wasp larva — a three-layer nested symbiosis
+   that undergraduates reliably find startling. Costs nothing in fidelity.
+4. **Researcher / field-study framing.** The paper's own posture, and this doc's original
+   preference. Persistence and variation are honestly the goals because they are what the
+   researcher wants.
+5. **Wild, non-agricultural landscape.** Removes the yield implication entirely, but
+   drifts from the real study system and from the transcribed 28-day harvest mechanics.
+   Weakest on fidelity.
+
+*Scoring loops:*
+
+- **Hidden state + limited sampling + committed predictions ("grad student sim").** The
+  player cannot see true populations; each turn they spend limited sampling effort, then
+  commit a claim ("resistance is rising because parasitism rose") that the data supports
+  or embarrasses. Matches the real 2011–2019 survey epistemics, makes *reading the
+  dynamics* the gameplay rather than a side effect, and suits a turn structure. Adds one
+  layer of mechanics.
+- **Full information.** Simpler and more readable, but risks turns feeling like clicking
+  "next" on a figure — the failure mode the owner already rejected once.
+
+### Unresolved — ask before assuming
+
+- **Audience.** `CLAUDE.md` says teenagers; the owner has now asked for ideas that
+  "resonate with undergraduate students." Confirm which, since it changes tone, session
+  length, and how much inferential load the game can carry.
+- **Which to settle first**, the setting or the scoring loop.
+
+The owner was asked both questions and left before answering, so start there.
+
+### Invariants for any reskin
+
+Whatever the setting, the mechanics must keep: two host genotypes with a
+resistance/fecundity trade-off; a parasitoid whose distribution is spatially uneven;
+patches with host dispersal between them; periodic disturbance that resets patches; and
+the eco-evolutionary feedback closing and repeating. Plus every hard constraint in
+`CLAUDE.md`. The simulation in `scripts/sim.gd` supports all of this already and should
+be reusable as-is under a new presentation — the redesign is presentation and framing,
+not model work.
